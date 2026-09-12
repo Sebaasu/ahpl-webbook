@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 7: Casos de Estudio Básicos | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html" class="active">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 7: Casos de Estudio Básicos</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:problemas_resueltos">Problemas Resueltos y Casos de Estudio
+en AHPL</h1>
+<p>En este capítulo consolidamos los fundamentos desarrollados en la
+primera parte del libro a través de casos de estudio básicos. Los
+ejercicios abordan el diseño de controladores secuenciadores,
+temporizadores con unidades funcionales combinatorias y sistemas con
+concurrencia global en hardware.</p>
+<h2 id="sec:ejemplo_stepper">Controlador Secuenciador: Motor Paso a Paso
+Bidireccional</h2>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Enunciado del Problema: Secuenciador de
+Fases</span></p>
+</div>
+<div class="callout-body">
+<p>Diseñe un controlador digital para un motor paso a paso de 4 fases
+con excitación de paso completo (<em>full-step</em>: <span
+class="math inline">\(1000 \to 0100 \to 0010 \to 0001\)</span>). El
+circuito dispone de las entradas escalares <span
+class="math inline">\(\text{enable}\)</span> y <span
+class="math inline">\(\text{dir}\)</span>, y del registro de salida
+<span class="math inline">\(\text{PHASE}[4]\)</span> conectado a las
+bobinas del estator. Si <span class="math inline">\(\text{enable} =
+0\)</span>, el motor permanece estático en su fase actual sin avanzar;
+si <span class="math inline">\(\text{enable} = 1\)</span> y <span
+class="math inline">\(\text{dir} = 0\)</span>, avanza secuencialmente en
+sentido horario (<span class="math inline">\(1 \to 2 \to 3 \to 4 \to
+1\)</span>), mientras que si <span class="math inline">\(\text{enable} =
+1\)</span> y <span class="math inline">\(\text{dir} = 1\)</span>, avanza
+en sentido antihorario (<span class="math inline">\(1 \to 4 \to 3 \to 2
+\to 1\)</span>).</p>
+</div>
+</div>
+<figure id="fig:bloques_stepper" data-latex-placement="H">
+<img src="figures/fig_bloques_stepper.svg" />
+<figcaption>Diagrama de bloques de interfaz y recursos de memoria del
+secuenciador <span
+class="math inline">\(\text{STEPPER_MOTOR}\)</span>.</figcaption>
+</figure>
+<h3 id="descripción-en-ahpl">Descripción en AHPL</h3>
+<p>El comportamiento se modela mediante una secuencia cíclica donde cada
+paso representa una fase física de activación de las bobinas del
+estator. En cada paso se evalúa <span
+class="math inline">\(\text{enable}\)</span> y <span
+class="math inline">\(\text{dir}\)</span> para seleccionar el salto
+hacia la fase siguiente o anterior:</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>MODULE:</strong> <span
+class="math inline">\(\text{STEPPER_MOTOR}.\)</span><br />
+<strong>MEMORY:</strong> <span
+class="math inline">\(\text{PHASE}[4].\)</span><br />
+<strong>INPUTS:</strong> <span class="math inline">\(\text{enable}; \;
+\text{dir}.\)</span><br />
+<strong>OUTPUTS:</strong> <span
+class="math inline">\(\text{PHASE}[4].\)</span><br />
+<span class="math inline">\(1 \quad \text{PHASE} \leftarrow (1, 0, 0,
+0)\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{enable}},
+\text{enable} \land \overline{\text{dir}}, \text{enable} \land
+\text{dir}) / (1, 2, 4).\)</span><br />
+<span class="math inline">\(2 \quad \text{PHASE} \leftarrow (0, 1, 0,
+0)\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{enable}},
+\text{enable} \land \overline{\text{dir}}, \text{enable} \land
+\text{dir}) / (2, 3, 1).\)</span><br />
+<span class="math inline">\(3 \quad \text{PHASE} \leftarrow (0, 0, 1,
+0)\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{enable}},
+\text{enable} \land \overline{\text{dir}}, \text{enable} \land
+\text{dir}) / (3, 4, 2).\)</span><br />
+<span class="math inline">\(4 \quad \text{PHASE} \leftarrow (0, 0, 0,
+1)\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{enable}},
+\text{enable} \land \overline{\text{dir}}, \text{enable} \land
+\text{dir}) / (4, 1, 3).\)</span><br />
+<strong>END SEQUENCE</strong><br />
+<strong>END</strong></p>
+</div>
+</div>
+<h3 id="síntesis-a-hardware">Síntesis a Hardware</h3>
+<p>Para la FSM One-Hot, las ecuaciones de entrada a los biestables de
+paso (<span class="math inline">\(D_{S_k}\)</span>) se derivan
+directamente de los términos de salto: <span
+class="math display">\[\begin{align*}
+    D_{S_1} &amp;= S_1 \land \overline{\text{enable}} \lor S_4 \land
+(\text{enable} \land \overline{\text{dir}}) \lor S_2 \land
+(\text{enable} \land \text{dir}) \\
+    D_{S_2} &amp;= S_2 \land \overline{\text{enable}} \lor S_1 \land
+(\text{enable} \land \overline{\text{dir}}) \lor S_3 \land
+(\text{enable} \land \text{dir}) \\
+    D_{S_3} &amp;= S_3 \land \overline{\text{enable}} \lor S_2 \land
+(\text{enable} \land \overline{\text{dir}}) \lor S_4 \land
+(\text{enable} \land \text{dir}) \\
+    D_{S_4} &amp;= S_4 \land \overline{\text{enable}} \lor S_3 \land
+(\text{enable} \land \overline{\text{dir}}) \lor S_1 \land
+(\text{enable} \land \text{dir})
+\end{align*}\]</span></p>
+<p>En la lógica de datos, el registro de salida <span
+class="math inline">\(\text{PHASE}[4]\)</span> se actualiza en todos los
+pasos activos cargando la constante de fase correspondiente: <span
+class="math display">\[\begin{align*}
+    \text{CLK}_{\text{PHASE}} &amp;= \text{CLK} \land (S_1 \lor S_2 \lor
+S_3 \lor S_4) \\
+    D_{\text{PHASE}} &amp;= S_1 \land (1,0,0,0) \lor S_2 \land (0,1,0,0)
+\lor S_3 \land (0,0,1,0) \lor S_4 \land (0,0,0,1) = (S_1, S_2, S_3, S_4)
+\end{align*}\]</span></p>
+<figure id="fig:circuito_control_stepper" data-latex-placement="H">
+<img src="figures/fig_circuito_control_stepper.svg" />
+<figcaption>Esquema lógico de la Unidad de Control (FSM One-Hot):
+flip-flops de estado <span class="math inline">\(S_1, \dots,
+S_4\)</span>, compuertas de excitación con lazos punto a punto
+ortogonales y riel de reloj maestro en la parte inferior.</figcaption>
+</figure>
+<figure id="fig:circuito_datos_stepper" data-latex-placement="H">
+<img src="figures/fig_circuito_datos_stepper.svg" />
+<figcaption>Esquema lógico de la Ruta de Datos (<em>Datapath</em>):
+multiplexor AND-OR para <span
+class="math inline">\(D_{\text{PHASE}}\)</span>, registro <span
+class="math inline">\(\text{PHASE}[4]\)</span>, inhibición de reloj
+(<em>Clock Gating</em>) y riel de reloj maestro en la parte
+inferior.</figcaption>
+</figure>
+<h2 id="sec:ejemplo_ton">Temporizador Industrial con Retardo a la
+Conexión (TON)</h2>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Enunciado del Problema: Temporizador
+TON</span></p>
+</div>
+<div class="callout-body">
+<p>Diseñe un temporizador industrial con retardo a la conexión
+(<em>Timer On-Delay</em>) que dispone de una entrada de habilitación
+<span class="math inline">\(\text{inicio}\)</span>, una salida <span
+class="math inline">\(\text{fin_out}\)</span>, un registro contador de 8
+bits <span class="math inline">\(\text{CUENTA}[8]\)</span>, un biestable
+de estado interno <span class="math inline">\(\text{fin}\)</span> y una
+unidad combinatoria de incremento <span
+class="math inline">\(\text{INC}[8] &lt;: \text{INC}(8)\)</span>.
+Mientras <span class="math inline">\(\text{inicio} = 0\)</span>, el
+sistema permanece en reposo con <span
+class="math inline">\(\text{CUENTA} = 0\)</span> y <span
+class="math inline">\(\text{fin} = 0\)</span>; al activarse <span
+class="math inline">\(\text{inicio} = 1\)</span>, el contador <span
+class="math inline">\(\text{CUENTA}\)</span> se incrementa sucesivamente
+en cada ciclo de reloj. Si <span
+class="math inline">\(\text{inicio}\)</span> cae a <span
+class="math inline">\(0\)</span> antes de saturar, el contador se
+reinicia a cero, mientras que al alcanzar el valor máximo (<span
+class="math inline">\(255\)</span>, detectado mediante la reducción
+<span class="math inline">\(\land/\text{CUENTA} = 1\)</span>), el
+biestable interno <span class="math inline">\(\text{fin}\)</span> se
+activa en alto (<span class="math inline">\(1\)</span>) y permanece en
+dicho estado mientras <span class="math inline">\(\text{inicio} =
+1\)</span>. La salida física <span
+class="math inline">\(\text{fin_out}\)</span> refleja continuamente el
+estado del registro interno mediante la sentencia global <span
+class="math inline">\(\text{fin_out} = \text{fin}\)</span>.</p>
+</div>
+</div>
+<figure id="fig:bloques_ton" data-latex-placement="H">
+<img src="figures/fig_bloques_ton.svg" />
+<figcaption>Diagrama de bloques de interfaz y recursos de memoria del
+temporizador <span
+class="math inline">\(\text{TIMER_TON}\)</span>.</figcaption>
+</figure>
+<h3 id="descripción-en-ahpl-1">Descripción en AHPL</h3>
+<p>Este ejercicio combina el uso de la unidad combinatoria de incremento
+<span class="math inline">\(\text{INC}\)</span> con el operador de
+reducción AND (<span class="math inline">\(\land/\text{CUENTA}\)</span>)
+para detectar la saturación del contador sin requerir bloques
+comparadores adicionales, conectando el registro interno <span
+class="math inline">\(\text{fin}\)</span> a la salida <span
+class="math inline">\(\text{fin_out}\)</span> mediante una sentencia
+global:</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>MODULE:</strong> <span
+class="math inline">\(\text{TIMER_TON}.\)</span><br />
+<strong>MEMORY:</strong> <span class="math inline">\(\text{CUENTA}[8];
+\; \text{fin}.\)</span><br />
+<strong>INPUTS:</strong> <span
+class="math inline">\(\text{inicio}.\)</span><br />
+<strong>OUTPUTS:</strong> <span
+class="math inline">\(\text{fin_out}.\)</span><br />
+<strong>CLUNITS:</strong> <span class="math inline">\(\text{INC}[8]
+&lt;: \text{INC}(8).\)</span><br />
+<span class="math inline">\(1 \quad \text{fin} \leftarrow 0; \quad
+\text{CUENTA} \leftarrow 8 \top 0\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{inicio}})
+/ (1).\)</span><br />
+<span class="math inline">\(2 \quad \text{CUENTA} \leftarrow
+\text{INC}(\text{CUENTA})\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{inicio}},
+\text{inicio} \land (\land/\text{CUENTA}), \text{inicio} \land
+\overline{\land/\text{CUENTA}}) / (1, 3, 2).\)</span><br />
+<span class="math inline">\(3 \quad \text{fin} \leftarrow
+1\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\text{inicio},
+\overline{\text{inicio}}) / (3, 1).\)</span><br />
+<strong>END SEQUENCE</strong><br />
+<span class="math inline">\(\text{fin_out} = \text{fin}.\)</span><br />
+<strong>END</strong></p>
+</div>
+</div>
+<h3 id="síntesis-a-hardware-1">Síntesis a Hardware</h3>
+<p>Las ecuaciones de excitación de la Unidad de Control son: <span
+class="math display">\[\begin{align*}
+    D_{S_1} &amp;= S_1 \land \overline{\text{inicio}} \lor S_2 \land
+\overline{\text{inicio}} \lor S_3 \land \overline{\text{inicio}} = (S_1
+\lor S_2 \lor S_3) \land \overline{\text{inicio}} \\
+    D_{S_2} &amp;= S_1 \land \text{inicio} \lor S_2 \land (\text{inicio}
+\land \overline{\land/\text{CUENTA}}) \\
+    D_{S_3} &amp;= S_2 \land \text{inicio} \land (\land/\text{CUENTA})
+\lor S_3 \land \text{inicio}
+\end{align*}\]</span></p>
+<p>Para la Ruta de Datos:</p>
+<ul>
+<li><p><strong>Contador</strong> <span
+class="math inline">\(\text{CUENTA}[8]\)</span>: se carga con <span
+class="math inline">\(0\)</span> en <span
+class="math inline">\(S_1\)</span> y con <span
+class="math inline">\(\text{INC}(\text{CUENTA})\)</span> en <span
+class="math inline">\(S_2\)</span>. <span
+class="math inline">\(\text{CLK}_{\text{CUENTA}} = \text{CLK} \land (S_1
+\lor S_2)\)</span>.</p></li>
+<li><p><strong>Biestable</strong> <span
+class="math inline">\(\text{fin}\)</span>: se actualiza con <span
+class="math inline">\(0\)</span> en <span
+class="math inline">\(S_1\)</span> y con <span
+class="math inline">\(1\)</span> en <span
+class="math inline">\(S_3\)</span>. <span
+class="math inline">\(\text{CLK}_{\text{fin}} = \text{CLK} \land (S_1
+\lor S_3)\)</span>.</p></li>
+<li><p><strong>Salida</strong> <span
+class="math inline">\(\text{fin_out}\)</span>: generada por conexión
+combinacional directa <span class="math inline">\(\text{fin_out} =
+\text{fin}\)</span> tras la salida <span
+class="math inline">\(Q\)</span> del biestable <span
+class="math inline">\(\text{fin}\)</span>.</p></li>
+</ul>
+<figure id="fig:circuito_control_ton" data-latex-placement="H">
+<img src="figures/fig_circuito_control_ton.svg" />
+<figcaption>Esquema lógico de la Unidad de Control (FSM One-Hot):
+flip-flops de estado <span class="math inline">\(S_1, S_2, S_3\)</span>,
+compuertas de excitación con lazos punto a punto ortogonales y riel de
+reloj maestro en la parte inferior.</figcaption>
+</figure>
+<figure id="fig:circuito_datos_ton" data-latex-placement="H">
+<img src="figures/fig_circuito_datos_ton.svg" />
+<figcaption>Esquema lógico de la Ruta de Datos (<em>Datapath</em>):
+registro contador <span class="math inline">\(\text{CUENTA}[8]\)</span>
+con unidad combinatoria <span class="math inline">\(\text{INC}\)</span>,
+detector de saturación <span
+class="math inline">\(\land/\text{CUENTA}\)</span>, biestable <span
+class="math inline">\(\text{fin}\)</span>, salida <span
+class="math inline">\(\text{fin_out}\)</span> y riel de reloj maestro en
+la parte inferior.</figcaption>
+</figure>
+<h2 id="sec:ejemplo_globales">Monitoreo Concurrente y Sentencias
+Globales: Coprocesador con Watchdog Timer</h2>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Enunciado del Problema: Coprocesador con
+Temporizador de Seguridad</span></p>
+</div>
+<div class="callout-body">
+<p>Diseñe un coprocesador de procesamiento síncrono que recibe la señal
+de arranque <span class="math inline">\(\text{inicio}\)</span> y el bus
+de entrada <span class="math inline">\(\text{DATA_IN}[8]\)</span> para
+capturar datos en <span
+class="math inline">\(\text{DATA_REG}[8]\)</span>, operar sobre un
+acumulador <span class="math inline">\(\text{ACC}[8]\)</span> mediante
+un sumador <span class="math inline">\(\text{ADD8}[8] &lt;:
+\text{ADD}(8; 8)\)</span> y emitir la bandera <span
+class="math inline">\(\text{fin}\)</span>. Como mecanismo de protección
+industrial concurrente y monitoreo en tiempo real mediante sentencias
+globales tras <strong>END SEQUENCE</strong>, el hardware incorpora un
+temporizador autónomo <span
+class="math inline">\(\text{TIMER}[16]\)</span> que se incrementa
+incondicionalmente en cada ciclo de reloj (<span
+class="math inline">\(\text{INC16}\)</span>), una salida de
+desbordamiento <span class="math inline">\(\text{alarm_timeout}\)</span>
+activada síncronamente al alcanzar la cuenta máxima (<span
+class="math inline">\(\land/\text{TIMER}\)</span>), y una salida de
+paridad instantánea <span class="math inline">\(\text{parity_live} =
+\oplus/\text{ACC}\)</span> evaluada permanentemente sobre el
+acumulador.</p>
+</div>
+</div>
+<figure id="fig:bloques_coprocessor" data-latex-placement="H">
+<img src="figures/fig_bloques_coprocessor.svg" />
+<figcaption>Diagrama de bloques de interfaz y recursos de memoria del
+coprocesador <span
+class="math inline">\(\text{COPROCESSOR_WATCHDOG}\)</span>.</figcaption>
+</figure>
+<h3 id="justificación-de-la-estructura-global">Justificación de la
+Estructura Global</h3>
+<p>Si intentáramos incrementar <span
+class="math inline">\(\text{TIMER}\)</span> dentro de la secuencia,
+deberíamos escribir <span class="math inline">\(\text{TIMER} \leftarrow
+\text{INC}(\text{TIMER})\)</span> en los pasos <span
+class="math inline">\(1, 2, 3, \dots\)</span>, consumiendo espacio de
+código y generando una red de multiplexación innecesaria. Al ubicar la
+transferencia después de <strong>END SEQUENCE</strong>:</p>
+<ul>
+<li><p>La compuerta de reloj del registro <span
+class="math inline">\(\text{TIMER}\)</span> no se inhibe por estados
+(<span class="math inline">\(CE = 1\)</span> permanente), conectándose
+el reloj maestro directo al biestable.</p></li>
+<li><p>La conexión <span class="math inline">\(\text{parity_live} =
+\oplus/\text{ACC}\)</span> se evalúa continuamente en la red
+combinatoria sin añadir latencia de ciclos.</p></li>
+</ul>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>MODULE:</strong> <span
+class="math inline">\(\text{COPROCESSOR_WATCHDOG}.\)</span><br />
+<strong>MEMORY:</strong> <span class="math inline">\(\text{ACC}[8]; \;
+\text{DATA_REG}[8]; \; \text{TIMER}[16]; \; \text{alarm_timeout}; \;
+\text{fin}.\)</span><br />
+<strong>INPUTS:</strong> <span class="math inline">\(\text{inicio}; \;
+\text{DATA_IN}[8].\)</span><br />
+<strong>OUTPUTS:</strong> <span class="math inline">\(\text{fin}; \;
+\text{alarm_timeout}; \; \text{parity_live}; \;
+\text{ACC_OUT}[8].\)</span><br />
+<strong>CLUNITS:</strong> <span class="math inline">\(\text{INC16}[16]
+&lt;: \text{INC}(16); \; \text{ADD8}[8] &lt;: \text{ADD}(8;
+8).\)</span><br />
+<span class="math inline">\(1 \quad \text{fin} \leftarrow
+1\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\overline{\text{inicio}},
+\text{inicio}) / (1, 2).\)</span><br />
+<span class="math inline">\(2 \quad \text{fin} \leftarrow 0; \quad
+\text{DATA_REG} \leftarrow \text{DATA_IN}; \quad \text{ACC} \leftarrow 8
+\top 0.\)</span><br />
+<span class="math inline">\(3 \quad \text{ACC} \leftarrow
+\text{ADD8}(\text{ACC}; \text{DATA_REG})\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\text{inicio},
+\overline{\text{inicio}}) / (3, 1).\)</span><br />
+<strong>END SEQUENCE</strong><br />
+<span class="math inline">\(\text{ACC_OUT} = \text{ACC};\)</span><br />
+<span class="math inline">\(\text{TIMER} \leftarrow
+\text{INC16}(\text{TIMER});\)</span><br />
+<span class="math inline">\(\text{alarm_timeout} \leftarrow
+\land/\text{TIMER};\)</span><br />
+<span class="math inline">\(\text{parity_live} =
+\oplus/\text{ACC};\)</span><br />
+<strong>END</strong></p>
+</div>
+</div>
+<h3 id="síntesis-a-hardware-2">Síntesis a Hardware</h3>
+<p>La Unidad de Control y los Procesos Globales se sintetizan de la
+siguiente manera: <span class="math display">\[\begin{align*}
+    D_{S_1} &amp;= S_1 \land \overline{\text{inicio}} \lor S_3 \land
+\overline{\text{inicio}} \\
+    D_{S_2} &amp;= S_1 \land \text{inicio} \\
+    D_{S_3} &amp;= S_2 \lor S_3 \land \text{inicio}
+\end{align*}\]</span></p>
+<p>En las transferencias globales y conexiones combinatorias: <span
+class="math display">\[\begin{align*}
+    \text{CLK}_{\text{TIMER}} &amp;= \text{CLK} \quad (\text{sin
+compuertas de habilitación}) \\
+    D_{\text{TIMER}} &amp;= \text{INC16}(\text{TIMER}) \\
+    D_{\text{alarm_timeout}} &amp;= \land/\text{TIMER} \\
+    \text{parity_live} &amp;= \oplus/\text{ACC}
+\end{align*}\]</span></p>
+<figure id="fig:circuito_control_coprocessor" data-latex-placement="H">
+<img src="figures/fig_circuito_control_coprocessor.svg" />
+<figcaption>Esquema lógico de la Unidad de Control (FSM One-Hot):
+flip-flops de estado <span class="math inline">\(S_1, S_2, S_3\)</span>,
+compuertas de excitación con lazos punto a punto ortogonales y riel de
+reloj maestro en la parte inferior.</figcaption>
+</figure>
+<figure id="fig:circuito_datos_coprocessor" data-latex-placement="H">
+<img src="figures/fig_circuito_datos_coprocessor.svg" />
+<figcaption>Esquema lógico de la Ruta de Datos (<em>Datapath</em>) y
+Sentencias Globales: acumulador <span
+class="math inline">\(\text{ACC}[8]\)</span> con sumador <span
+class="math inline">\(\text{ADD8}\)</span>, generador de paridad <span
+class="math inline">\(\oplus/\text{ACC}\)</span>, temporizador autónomo
+<span class="math inline">\(\text{TIMER}[16]\)</span> con <span
+class="math inline">\(\text{INC16}\)</span>, detector <span
+class="math inline">\(\land/\text{TIMER}\)</span> y riel de reloj
+maestro en la parte inferior.</figcaption>
+</figure>
+<div class="callout callout-warn">
+<div class="callout-header">
+<p><span class="callout-icon">⚠️ </span><span
+class="callout-title-text">Pérdida de Utilidad Secuencial del Registro
+Global</span></p>
+</div>
+<div class="callout-body">
+<p>El registro <span class="math inline">\(\text{TIMER}\)</span> recibe
+el pulso de reloj en cada flanco descendente (<span
+class="math inline">\(\downarrow\)</span>). Por tanto, si se intentara
+escribir una asignación <span class="math inline">\(\text{TIMER}
+\leftarrow 0\)</span> dentro de cualquier paso de la secuencia (<span
+class="math inline">\(1, 2, 3\)</span>), se crearía un conflicto
+estructural de múltiples fuentes sobre la entrada <span
+class="math inline">\(D\)</span> y el reloj del registro. Los registros
+globales operan como procesos autónomos desacoplados de la FSM.</p>
+</div>
+</div>
+
+            <nav class="book-nav"><a href="cap06.html" class="prev-chapter">← Capítulo 6: Síntesis a Hardware</a><div></div></nav>
+        </div>
+    </main>
+</body>
+</html>

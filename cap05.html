@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 5: Lógica de Datos | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html" class="active">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 5: Lógica de Datos</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:logica_datos">Lógica de Datos: Transferencias, Conexiones y
+Memorias</h1>
+<p>La Lógica de Datos (<em>Datapath</em>) comprende todos los elementos
+que procesan, conducen y almacenan la información. En AHPL existen dos
+sentencias fundamentales para interactuar con los datos: las
+<strong>transferencias hacia registros</strong> y las <strong>conexiones
+a buses</strong>.</p>
+<h2 id="transferencias-vs.-conexiones">Transferencias vs.
+Conexiones</h2>
+<table id="tab:transferencias_vs_conexiones">
+<caption>Diferencia fundamental entre Transferencias y
+Conexiones.</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Característica</strong></th>
+<th style="text-align: left;"><strong>Transferencia (<span
+class="math inline">\(\leftarrow\)</span>)</strong></th>
+<th style="text-align: left;"><strong>Conexión (<span
+class="math inline">\(=\)</span>)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Destino</strong></td>
+<td style="text-align: left;">Elementos con memoria
+(<strong>MEMORY</strong>, registros, flip-flops).</td>
+<td style="text-align: left;">Elementos combinatorios
+(<strong>BUSES</strong>, líneas de <strong>OUTPUTS</strong>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Comportamiento
+Temporal</strong></td>
+<td style="text-align: left;"><strong>Síncrono:</strong> Se ejecuta en
+el flanco activo del reloj (<span
+class="math inline">\(\downarrow\)</span>).</td>
+<td style="text-align: left;"><strong>Combinatorio:</strong> Activo
+durante todo el intervalo que dure el paso.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Persistencia</strong></td>
+<td style="text-align: left;">El dato permanece guardado indefinidamente
+hasta ser sobreescrito.</td>
+<td style="text-align: left;">El dato desaparece al abandonar el paso
+(vuelve a <span class="math inline">\(0\)</span>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Hardware Inferido</strong></td>
+<td style="text-align: left;">Flip-flops D con habilitador de reloj
+(<em>Clock Enable</em>).</td>
+<td style="text-align: left;">Red de compuertas AND-OR
+(multiplexor).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="concurrencia-dentro-del-mismo-paso">Concurrencia Dentro del
+Mismo Paso</h2>
+<p>En hardware digital, múltiples operaciones pueden ocurrir en paralelo
+durante un mismo ciclo de reloj. En AHPL, las sentencias concurrentes
+dentro de un paso se separan mediante <strong>punto y coma</strong>
+(<span class="math inline">\(;\)</span>):</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><span class="math inline">\(3 \quad A \leftarrow B; \quad C
+\leftarrow 4 \top 0; \quad \text{BUS_OUT} = A\)</span><br />
+<span class="math inline">\(\quad \rightarrow (5).\)</span></p>
+</div>
+</div>
+<p>En este paso, durante un único ciclo de reloj ocurren simultáneamente
+tres acciones bien diferenciadas en su naturaleza física:</p>
+<ol>
+<li><p><strong>Conexión combinatoria al bus (<span
+class="math inline">\(\text{BUS_OUT} = A\)</span>):</strong> Durante el
+intervalo en que el estado de control <span
+class="math inline">\(\text{Paso} = 3\)</span> se encuentra activo, el
+bus <span class="math inline">\(\text{BUS_OUT}\)</span> refleja el valor
+presente en el registro <span class="math inline">\(A\)</span>. Al
+conmutar al siguiente paso, el bus retorna a su valor nulo tras el
+tiempo de propagación de la red combinatoria.</p></li>
+<li><p><strong>Transferencia síncrona a registros (<span
+class="math inline">\(A \leftarrow B\)</span>, <span
+class="math inline">\(C \leftarrow 4 \top 0\)</span>):</strong> Los
+registros <span class="math inline">\(A\)</span> y <span
+class="math inline">\(C\)</span> retienen su valor anterior durante el
+transcurso del paso 3 y capturan de forma simultánea los nuevos valores
+exactamente en el <strong>flanco descendente</strong> (<span
+class="math inline">\(\downarrow\)</span>) del reloj.</p></li>
+<li><p><strong>Transición de estado de control (<span
+class="math inline">\(\rightarrow (5)\)</span>):</strong> En el mismo
+flanco descendente, el secuenciador de control conmuta de <span
+class="math inline">\(\text{Paso} = 3\)</span> a <span
+class="math inline">\(\text{Paso} = 5\)</span>.</p></li>
+</ol>
+<p>Para ilustrar este comportamiento, consideremos que antes de ingresar
+al paso 3 los registros almacenan los valores: <span
+class="math inline">\(A = 5\)</span>, <span class="math inline">\(B =
+12\)</span> y <span class="math inline">\(C = 7\)</span>.</p>
+<figure id="fig:diagrama_tiempos_concurrencia" data-latex-placement="H">
+<img src="figures/inline_459e3bc3fa.svg" />
+<figcaption>Diagrama de tiempos para el paso concurrente <span
+class="math inline">\(3 \quad A \leftarrow B; \; C \leftarrow 4 \top 0;
+\; \text{BUS_OUT} = A; \; \rightarrow (5).\)</span></figcaption>
+</figure>
+<h2 id="acceso-a-memorias-bidimensionales">Acceso a Memorias
+Bidimensionales</h2>
+<p>Una memoria bidimensional declarada en la sección
+<strong>MEMORY</strong> (por ejemplo <span class="math inline">\(M[1024,
+8]\)</span>) representa un arreglo matricial de celdas binarias. En
+AHPL, el acceso a memorias se divide estrictamente en dos operaciones
+según la dirección del flujo de información:</p>
+<h3 id="operaciones-de-lectura-textbusfn-y-textdcd">Operaciones de
+Lectura (<span class="math inline">\(\text{BUSFN}\)</span> y <span
+class="math inline">\(\text{DCD}\)</span>)</h3>
+<p>Para leer el contenido de una palabra de memoria, se debe decodificar
+la dirección mediante <span
+class="math inline">\(\text{DCD}(\text{AR})\)</span> y extraer la fila
+correspondiente mediante la función de selección matricial <span
+class="math inline">\(\text{BUSFN}\)</span>:</p>
+<dl>
+<dt><strong>Lectura sobre un Registro (Síncrona):</strong></dt>
+<dd>
+<p>La palabra seleccionada se captura en el registro de destino <span
+class="math inline">\(X\)</span> en el flanco descendente del reloj:
+<span class="math display">\[X \leftarrow \text{BUSFN}(M;
+\text{DCD}(\text{AR}))\]</span></p>
+</dd>
+<dt><strong>Lectura sobre un Bus o Salida (Combinatoria):</strong></dt>
+<dd>
+<p>La palabra seleccionada se conecta de forma inmediata y continua al
+bus o puerto de salida <span class="math inline">\(X\)</span> durante el
+tiempo que dure el paso: <span class="math display">\[X =
+\text{BUSFN}(M; \text{DCD}(\text{AR}))\]</span></p>
+</dd>
+</dl>
+<div class="callout callout-error">
+<div class="callout-header">
+<p><span class="callout-icon">🚫 </span><span
+class="callout-title-text">Error Recurrente: Sintaxis de Software en
+Memorias</span></p>
+</div>
+<div class="callout-body">
+<p><strong>Incorrecto (Sintaxis de Lenguaje de Alto Nivel):</strong>
+<span class="math inline">\(X \leftarrow M[\text{AR}]\)</span> o <span
+class="math inline">\(X = M[\text{AR}]\)</span><br />
+<strong>Correcto (Hardware AHPL):</strong> <span class="math inline">\(X
+\leftarrow \text{BUSFN}(M; \text{DCD}(\text{AR}))\)</span> o <span
+class="math inline">\(X = \text{BUSFN}(M;
+\text{DCD}(\text{AR}))\)</span></p>
+</div>
+</div>
+<h3 id="operaciones-de-escritura-en-memoria">Operaciones de Escritura en
+Memoria</h3>
+<p>La escritura en una memoria bidimensional requiere seleccionar la
+fila destino mediante la decodificación del registro de direcciones y
+transferir el dato en el flanco activo del reloj:</p>
+<p><span class="math display">\[M * \text{DCD}(\text{AR}) \leftarrow
+X\]</span></p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">Mecanismo Físico de Escritura en
+Memoria</span></p>
+</div>
+<div class="callout-body">
+<p>En la expresión <span class="math inline">\(M * \text{DCD}(\text{AR})
+\leftarrow X\)</span>:</p>
+<ul>
+<li><p><span class="math inline">\(\text{DCD}(\text{AR})\)</span> genera
+un vector <em>One-Hot</em> que habilita las compuertas de reloj
+(<em>Write Enable</em>) exclusivamente en la fila de memoria
+seleccionada.</p></li>
+<li><p>El operador <span class="math inline">\(*\)</span> representa la
+compuerta de habilitación que dirige el pulso de reloj y los datos de
+<span class="math inline">\(X\)</span> a dicha fila.</p></li>
+<li><p>En el flanco descendente (<span
+class="math inline">\(\downarrow\)</span>), la fila seleccionada captura
+el valor de <span class="math inline">\(X\)</span>, mientras que el
+resto de las palabras de la memoria conservan su contenido
+intacto.</p></li>
+</ul>
+</div>
+</div>
+<h2 id="sentencias-globales">Sentencias Globales</h2>
+<p>Las sentencias que se escriben después de la directiva <strong>END
+SEQUENCE</strong> constituyen las <strong>sentencias globales</strong>.
+Estas operaciones no se encuentran subordinadas a ningún estado o paso
+de la máquina de control; por el contrario, se ejecutan de forma
+incondicional y continua en <strong>todos los ciclos de
+reloj</strong>.</p>
+<p>En AHPL se distinguen dos tipos de sentencias globales:</p>
+<h3 id="conexiones-globales">Conexiones Globales (<span
+class="math inline">\(=\)</span>)</h3>
+<p>Asignan valores o señales de registros a buses internos o puertos de
+salida de forma permanente:</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>END SEQUENCE</strong><br />
+<span class="math inline">\(\text{BUS_OUT} = A;\)</span><br />
+<span class="math inline">\(\text{ready} =
+\overline{\text{run}};\)</span><br />
+<strong>END</strong></p>
+</div>
+</div>
+<p>En este caso, <span class="math inline">\(\text{BUS_OUT}\)</span>
+siempre transporta el valor de <span class="math inline">\(A\)</span> y
+la salida <span class="math inline">\(\text{ready}\)</span> siempre
+refleja la negación de <span class="math inline">\(\text{run}\)</span>,
+independientemente del paso en el que se encuentre la secuencia de
+control.</p>
+<h3
+id="transferencias-globales-sobre-registros-leftarrow">Transferencias
+Globales sobre Registros (<span
+class="math inline">\(\leftarrow\)</span>)</h3>
+<p>Cargan o transforman el valor de un registro en <strong>cada uno de
+los flancos descendentes del reloj</strong>:</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>END SEQUENCE</strong><br />
+<span class="math inline">\(\text{TICK_COUNT} \leftarrow
+\text{INC}(\text{TICK_COUNT});\)</span><br />
+<span class="math inline">\(\text{SYNC_IN} \leftarrow
+\text{async_pin};\)</span><br />
+<strong>END</strong></p>
+</div>
+</div>
+<div class="callout callout-warn">
+<div class="callout-header">
+<p><span class="callout-icon">⚠️ </span><span
+class="callout-title-text">Pérdida de Utilidad del Registro dentro de la
+Secuencia</span></p>
+</div>
+<div class="callout-body">
+<p>Cuando un registro se actualiza mediante una transferencia global
+(como <span class="math inline">\(\text{TICK_COUNT} \leftarrow
+\text{INC}(\text{TICK_COUNT})\)</span>), su señal de habilitación de
+reloj (<span class="math inline">\(CE\)</span>) queda permanentemente
+activa en nivel alto (<span class="math inline">\(1\)</span>).</p>
+<p>Por consiguiente, dicho registro se sobreescribe en <strong>todos los
+flancos de reloj</strong> y <strong>pierde su utilidad para realizar
+transferencias selectivas dentro de los pasos de la secuencia</strong>
+(intentar hacer <span class="math inline">\(R \leftarrow \dots\)</span>
+en un paso de la secuencia generaría un conflicto destructivo en las
+compuertas de entrada del registro).</p>
+</div>
+</div>
+<h3 id="diagrama-de-tiempos-para-sentencias-globales">Diagrama de
+Tiempos para Sentencias Globales</h3>
+<p>Consideremos un sistema con un registro de secuencia <span
+class="math inline">\(A\)</span> (manipulado en los pasos 1 y 2), una
+conexión global <span class="math inline">\(\text{BUS_OUT} = A\)</span>
+y un contador libre global <span class="math inline">\(\text{TICK}
+\leftarrow \text{INC}(\text{TICK})\)</span>.</p>
+<figure id="fig:diagrama_tiempos_globales" data-latex-placement="H">
+<img src="figures/inline_3a2ae1ebc8.svg" />
+<figcaption>Diagrama de tiempos para sentencias globales. Nótese cómo
+<span class="math inline">\(\text{BUS_OUT}\)</span> sigue
+permanentemente a <span class="math inline">\(A\)</span>, mientras que
+el registro global <span class="math inline">\(\text{TICK}\)</span> se
+incrementa en cada flanco de reloj de forma ininterrumpida.</figcaption>
+</figure>
+
+            <nav class="book-nav"><a href="cap04.html" class="prev-chapter">← Capítulo 4: Lógica de Control</a><div></div><a href="cap06.html" class="next-chapter">Capítulo 6: Síntesis a Hardware →</a></nav>
+        </div>
+    </main>
+</body>
+</html>

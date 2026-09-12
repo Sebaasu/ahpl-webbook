@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 2: Elementos y Declaraciones | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html" class="active">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 2: Elementos y Declaraciones</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:elementos_declaraciones">Elementos Básicos y Declaraciones
+en AHPL</h1>
+<p>Todo diseño en AHPL se concibe como una entidad modular cerrada con
+interfaces de comunicación rigurosamente estructuradas. En este capítulo
+estudiaremos la anatomía general de un programa AHPL, la declaración
+formal de sus componentes de almacenamiento e interconexión, y las
+convenciones de nomenclatura e indexación de bits bajo la notación
+tipográfica estándar.</p>
+<h2 id="estructura-general-de-un-módulo-ahpl">Estructura General de un
+Módulo AHPL</h2>
+<p>Un módulo en AHPL se compone de tres zonas principales:</p>
+<ol>
+<li><p><strong>Cabecera y Zona de Declaraciones:</strong> Define el
+nombre del módulo y enumera todos los elementos de memoria, puertos de
+entrada/salida y buses internos.</p></li>
+<li><p><strong>Cuerpo de la Secuencia:</strong> Comienza directamente
+con el paso <span class="math inline">\(1.\)</span> y finaliza con la
+directiva <strong>END SEQUENCE</strong>. Cada paso representa un estado
+de la máquina de estados finitos (Lógica de Control) y las operaciones
+de datos temporizadas asociadas.</p></li>
+<li><p><strong>Sentencias Globales y Fin de Módulo:</strong> Operaciones
+y conexiones combinatorias continuas que permanecen activas en todo
+momento, finalizando con la directiva <strong>END</strong>.</p></li>
+</ol>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>MODULE:</strong> <span
+class="math inline">\(\text{NOMBRE_MODULO}.\)</span><br />
+<strong>MEMORY:</strong> <span
+class="math inline">\(\dots\)</span><br />
+<strong>INPUTS:</strong> <span
+class="math inline">\(\dots\)</span><br />
+<strong>OUTPUTS:</strong> <span
+class="math inline">\(\dots\)</span><br />
+<strong>BUSES:</strong> <span class="math inline">\(\dots\)</span><br />
+<strong>CLUNITS:</strong> <span
+class="math inline">\(\dots\)</span><br />
+<span class="math inline">\(1 \quad \dots\)</span><br />
+<span class="math inline">\(2 \quad \dots\)</span><br />
+<strong>END SEQUENCE</strong><br />
+<strong>END</strong></p>
+</div>
+</div>
+<div class="callout callout-rule">
+<div class="callout-header">
+<p><span class="callout-icon">📐 </span><span
+class="callout-title-text">Delimitación de Pasos y Secciones</span></p>
+</div>
+<div class="callout-body">
+<ul>
+<li><p>Dentro de cada sección de declaración (<strong>MEMORY</strong>,
+<strong>INPUTS</strong>, etc.), los elementos se separan mediante
+<strong>punto y coma</strong> (<span class="math inline">\(;\)</span>) y
+la sección finaliza con un <strong>punto</strong> (<span
+class="math inline">\(.\)</span>).</p></li>
+<li><p>Cada paso de la secuencia se delimita por su número identificador
+al inicio (<span class="math inline">\(1., 2., \dots\)</span>) y
+concluye con un <strong>punto</strong> (<span
+class="math inline">\(.\)</span>) que abarca tanto las operaciones de
+datos como la sentencia de bifurcación si existiese.</p></li>
+<li><p>La secuencia de control termina con la directiva <strong>END
+SEQUENCE</strong> (sin punto final) y el módulo completo finaliza con la
+directiva <strong>END</strong> (sin punto final).</p></li>
+</ul>
+</div>
+</div>
+<h2 id="secciones-de-declaración-y-tipos-de-señales">Secciones de
+Declaración y Tipos de Señales</h2>
+<h3 id="entradas-inputs">Entradas (<strong>INPUTS:</strong>)</h3>
+<p>Son líneas de señal que provienen desde el exterior hacia el
+circuito. El circuito puede leerlas en cualquier momento para evaluar
+condiciones de control o capturar datos en registros.</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>INPUTS:</strong> <span class="math inline">\(\text{reset}; \;
+\text{start}; \; X[8]; \; \text{key}[4].\)</span></p>
+</div>
+</div>
+<h3 id="salidas-outputs">Salidas (<strong>OUTPUTS:</strong>)</h3>
+<p>Son líneas generadas por el circuito hacia el exterior. Pueden
+conectarse a registros, a buses combinatorios o activarse
+condicionalmente en pasos específicos.</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>OUTPUTS:</strong> <span class="math inline">\(\text{done}; \;
+\text{alarm}; \; \text{BUS_OUT}[16].\)</span></p>
+</div>
+</div>
+<h3 id="elementos-de-memoria-memory">Elementos de Memoria
+(<strong>MEMORY:</strong>)</h3>
+<p>La sección <strong>MEMORY</strong> declara todos los componentes de
+almacenamiento síncrono del sistema:</p>
+<ul>
+<li><p><strong>Biestables individuales (escalares):</strong> Almacenan
+un único bit.</p></li>
+<li><p><strong>Registros (vectores 1D):</strong> Arreglos
+unidimensionales de biestables con un ancho de palabra
+definido.</p></li>
+<li><p><strong>Memorias bidimensionales (matrices 2D):</strong> Arreglos
+matriciales de palabras binarias, declarados indicando primero el número
+de palabras (filas) y luego el número de bits por palabra
+(columnas).</p></li>
+</ul>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>MEMORY:</strong> <span class="math inline">\(\text{flag}; \;
+\text{run}; \; \text{ACC}[8]; \; \text{PC}[12]; \; M[1024,
+8].\)</span></p>
+</div>
+</div>
+<p>En la declaración anterior, <span class="math inline">\(M[1024,
+8]\)</span> representa una memoria de <span
+class="math inline">\(1024\)</span> palabras de <span
+class="math inline">\(8\)</span> bits cada una.</p>
+<h3 id="buses-internos-buses">Buses Internos
+(<strong>BUSES:</strong>)</h3>
+<p>Son líneas de interconexión puramente combinatorias dentro del
+circuito. No poseen memoria intrínseca; se implementan físicamente como
+redes de multiplexación AND-OR.</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><strong>BUSES:</strong> <span class="math inline">\(\text{IBUS}[8];
+\; \text{OBUS}[8].\)</span></p>
+</div>
+</div>
+<h2 id="convenciones-de-nomenclatura-y-notación">Convenciones de
+Nomenclatura y Notación</h2>
+<p>Para mantener la claridad pedagógica y la uniformidad a lo largo del
+texto, se establecen las siguientes reglas de estilo:</p>
+<div class="callout callout-rule">
+<div class="callout-header">
+<p><span class="callout-icon">📐 </span><span
+class="callout-title-text">Convenciones Tipográficas en AHPL</span></p>
+</div>
+<div class="callout-body">
+<ol>
+<li><p><strong>Vectores, Matrices y Buses:</strong> Se escriben
+obligatoriamente en <strong>MAYÚSCULAS</strong> (ej. <span
+class="math inline">\(A, B, \text{REG}, \text{DATA_IN}, \text{ACC},
+M\)</span>).</p></li>
+<li><p><strong>Escalares y Bits Individuales:</strong> Se escriben en
+<strong>minúsculas</strong> (ej. <span
+class="math inline">\(\text{start}, \text{ready}, \text{clk},
+\text{flag}, b\)</span>).</p></li>
+<li><p><strong>Indexación de Elementos:</strong> Para hacer referencia a
+un bit o subvector dentro de un vector, se utiliza la notación de
+subíndices: <span class="math inline">\(A_0\)</span> para un bit
+específico o <span class="math inline">\(A_{2:5}\)</span> para un rango
+contiguo de bits.</p></li>
+</ol>
+</div>
+</div>
+<h2 id="el-orden-de-bits-convención-big-endian-estricta">El Orden de
+Bits: Convención Big-Endian Estricta</h2>
+<p>En AHPL, la ordenación de los bits en cualquier vector de dimensión
+<span class="math inline">\(n\)</span> sigue de manera rigurosa el
+convenio <strong>Big-Endian</strong>:</p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">Regla de Oro de la Indexación en
+AHPL</span></p>
+</div>
+<div class="callout-body">
+<p>En cualquier vector o registro de <span
+class="math inline">\(n\)</span> bits declarado como <span
+class="math inline">\(A[n]\)</span>:</p>
+<ul>
+<li><p>El bit con índice <strong>0</strong> es siempre el <strong>Bit
+Más Significativo</strong> (<em>MSB</em>).</p></li>
+<li><p>El bit con índice <strong><span
+class="math inline">\(n-1\)</span></strong> es el <strong>Bit Menos
+Significativo</strong> (<em>LSB</em>).</p></li>
+</ul>
+<p><span class="math display">\[A = (A_0, A_1, A_2, \dots, A_{n-1})
+\quad \text{donde } A_0 \equiv \text{MSB}, \; A_{n-1} \equiv
+\text{LSB}\]</span></p>
+</div>
+</div>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Ejemplo Ilustrativo</span></p>
+</div>
+<div class="callout-body">
+<p>Sea un registro de 4 bits <span class="math inline">\(S[4]\)</span>
+cargado con el valor binario <span class="math inline">\(1000_2\)</span>
+(decimal 8):</p>
+<ul>
+<li><p><span class="math inline">\(S_0 = 1\)</span> (Bit Más
+Significativo, MSB)</p></li>
+<li><p><span class="math inline">\(S_1 = 0\)</span></p></li>
+<li><p><span class="math inline">\(S_2 = 0\)</span></p></li>
+<li><p><span class="math inline">\(S_3 = 0\)</span> (Bit Menos
+Significativo, LSB)</p></li>
+</ul>
+</div>
+</div>
+<h3 id="indexación-de-rangos-y-subvectores">Indexación de Rangos y
+Subvectores</h3>
+<p>Para hacer referencia a una porción contigua de un vector, se utiliza
+la notación de rango por subíndices:</p>
+<ul>
+<li><p><span class="math inline">\(A_{0:3}\)</span>: Selecciona los 4
+bits más significativos (<span class="math inline">\(A_0, A_1, A_2,
+A_3\)</span>).</p></li>
+<li><p><span class="math inline">\(A_{4:7}\)</span>: Selecciona los 4
+bits siguientes.</p></li>
+</ul>
+<div class="callout callout-warn">
+<div class="callout-header">
+<p><span class="callout-icon">⚠️ </span><span
+class="callout-title-text">Direccionalidad de Rangos</span></p>
+</div>
+<div class="callout-body">
+<p>Dado que el índice <span class="math inline">\(0\)</span> representa
+el bit de mayor peso, los rangos se expresan siempre en orden
+ascendente: <span class="math inline">\(A_{0:3}\)</span> es la forma
+correcta. Escribir <span class="math inline">\(A_{3:0}\)</span> no es
+admisible en la convención estándar de AHPL.</p>
+</div>
+</div>
+
+            <nav class="book-nav"><a href="cap01.html" class="prev-chapter">← Capítulo 1: Fundamentos y Paradigma RTL</a><div></div><a href="cap03.html" class="next-chapter">Capítulo 3: Operadores y Expresiones →</a></nav>
+        </div>
+    </main>
+</body>
+</html>

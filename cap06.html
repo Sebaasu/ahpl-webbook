@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 6: Síntesis a Hardware | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html" class="active">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 6: Síntesis a Hardware</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:sintesis_hardware">Síntesis a Hardware: De AHPL al Esquema
+Lógico</h1>
+<p>El mayor valor pedagógico de AHPL radica en la correspondencia
+determinista, directa y unívoca (<span
+class="math inline">\(1:1\)</span>) que existe entre cada línea de
+código y el circuito lógico que lo materializa. En este capítulo
+presentaremos el procedimiento canónico para derivar manualmente los
+esquemas circuitales completos, dividiendo el diseño en la
+<strong>Unidad de Control (FSM One-Hot)</strong> y la <strong>Ruta de
+Datos (Datapath)</strong>.</p>
+<h2 id="síntesis-de-la-unidad-de-control-fsm-one-hot">Síntesis de la
+Unidad de Control (FSM One-Hot)</h2>
+<p>En el método estándar de síntesis de AHPL, a cada paso <span
+class="math inline">\(k\)</span> de la secuencia (<span
+class="math inline">\(1, 2, \dots, N\)</span>) le corresponde
+exactamente un biestable tipo D denominado <span
+class="math inline">\(S_k\)</span>. En cualquier instante de tiempo,
+solo uno de estos biestables almacena un nivel lógico <span
+class="math inline">\(1\)</span>, indicando el paso actualmente en
+ejecución.</p>
+<h3 id="ecuaciones-de-excitación-de-los-flip-flops-d_s_k">Ecuaciones de
+Excitación de los Flip-Flops (<span
+class="math inline">\(D_{S_k}\)</span>)</h3>
+<p>La entrada de datos <span class="math inline">\(D\)</span> del
+flip-flop correspondiente al paso <span class="math inline">\(k\)</span>
+(<span class="math inline">\(D_{S_k}\)</span>) se obtiene mediante la
+suma lógica (OR) de todos los caminos de transición que conducen hacia
+el paso <span class="math inline">\(k\)</span>. Cada camino se forma
+multiplicando (AND) el estado de origen por la condición booleana que
+habilita el salto:</p>
+<p><span class="math display">\[D_{S_k} = \sum_{\text{todos los caminos
+a } k} (\text{Paso de Origen} \land \text{Condición de
+Salto})\]</span></p>
+<div class="callout callout-rule">
+<div class="callout-header">
+<p><span class="callout-icon">📐 </span><span
+class="callout-title-text">Regla de Derivación para el Estado
+Siguiente</span></p>
+</div>
+<div class="callout-body">
+<p>Para un paso genérico <span class="math inline">\(j\)</span>:</p>
+<ol>
+<li><p><strong>Salto incondicional</strong> <span
+class="math inline">\(\rightarrow (k).\)</span>: Aporta el término <span
+class="math inline">\(S_j\)</span> a la entrada <span
+class="math inline">\(D_{S_k}\)</span>.</p></li>
+<li><p><strong>Salto condicional</strong> <span
+class="math inline">\(\rightarrow (c_1, \dots, c_m)/(p_1, \dots,
+p_m).\)</span>:</p>
+<ul>
+<li><p>Cada destino <span class="math inline">\(p_i\)</span> recibe el
+término <span class="math inline">\(S_j \land c_i\)</span>.</p></li>
+<li><p>El paso consecutivo <span class="math inline">\(j+1\)</span>
+recibe el término de caída por defecto: <span class="math inline">\(S_j
+\land \overline{c_1} \land \overline{c_2} \dots \land
+\overline{c_m}\)</span>.</p></li>
+</ul></li>
+<li><p><strong>Sin bifurcación explícita</strong>: Aporta el término
+<span class="math inline">\(S_j\)</span> directamente a <span
+class="math inline">\(D_{S_{j+1}}\)</span>.</p></li>
+</ol>
+</div>
+</div>
+<p>Consideremos el siguiente módulo de control de 3 pasos:</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><span class="math inline">\(1 \quad \rightarrow
+(\overline{\text{start}}) / (1).\)</span><br />
+<span class="math inline">\(2 \quad A \leftarrow B.\)</span><br />
+<span class="math inline">\(3 \quad \rightarrow (\text{flag},
+\overline{\text{flag}}) / (1, 3).\)</span></p>
+</div>
+</div>
+<p>Las ecuaciones de excitación para los tres biestables son: <span
+class="math display">\[\begin{align*}
+    D_{S_1} &amp;= (S_1 \land \overline{\text{start}}) \lor (S_3 \land
+\text{flag}) \\
+    D_{S_2} &amp;= S_1 \land \text{start} \\
+    D_{S_3} &amp;= S_2 \lor (S_3 \land \overline{\text{flag}})
+\end{align*}\]</span></p>
+<figure id="fig:circuito_control_canonico" data-latex-placement="H">
+<img src="figures/fig_circuito_control_canonico.svg" />
+<figcaption>Circuito esquemático de la Unidad de Control: etapas de paso
+(<span class="math inline">\(S_1, S_2, S_3\)</span>) con flip-flops D y
+sus terminales <span class="math inline">\(D, Q,
+\text{CLK}(\downarrow)\)</span>, compuertas lógicas alineadas y lazo de
+retorno cerrado.</figcaption>
+</figure>
+<h2 id="síntesis-de-la-ruta-de-datos-datapath">Síntesis de la Ruta de
+Datos (<em>Datapath</em>)</h2>
+<p>En la arquitectura de hardware clásica descrita por AHPL, los
+registros no disponen de un pin de habilitación interno (<span
+class="math inline">\(CE\)</span>). En su lugar, la captura de datos se
+controla mediante la <strong>inhibición de reloj</strong> (<em>Clock
+Gating</em>), donde el pulso de reloj maestro solo se transmite al
+registro si la condición de carga está activa:</p>
+<p><span class="math display">\[\text{CLK}_R = \text{CLK} \land \left(
+\sum_{j \in \text{pasos con } R \leftarrow \dots} S_j
+\right)\]</span></p>
+<p>Asimismo, la entrada de datos <span class="math inline">\(D\)</span>
+del registro recibe la suma lógica de las fuentes habilitadas por sus
+respectivos pasos de control mediante un multiplexor AND-OR:</p>
+<p><span class="math display">\[D_R = \sum_{j} (S_j \land
+\text{Dato_Fuente}_j)\]</span></p>
+<figure id="fig:circuito_datapath_registro" data-latex-placement="H">
+<img src="figures/fig_circuito_datapath_registro.svg" />
+<figcaption>Circuito del Datapath para un registro: multiplexación
+AND-OR en la entrada de datos <span class="math inline">\(D\)</span> y
+reloj habilitado por compuerta (<em>Clock Gating</em>) mediante <span
+class="math inline">\(\text{CLK} \land (S_1 \lor
+S_4)\)</span>.</figcaption>
+</figure>
+<h2 id="síntesis-de-conexiones-y-buses">Síntesis de Conexiones y
+Buses</h2>
+<p>Para cada bus <span class="math inline">\(B\)</span> en la sección
+<strong>BUSES</strong>, la señal se sintetiza como un multiplexor
+puramente combinatorio. Su valor de salida es la suma lógica (OR) de
+todas las fuentes conectadas, habilitadas por sus respectivos pasos de
+control mediante compuertas AND:</p>
+<p><span class="math display">\[B = \sum_{j \in \text{pasos con } B = X}
+(S_j \land X)\]</span></p>
+<p>Si ningún paso con asignación al bus está activo, la salida del bus
+es <span class="math inline">\(0\)</span>.</p>
+<figure id="fig:circuito_bus_and_or" data-latex-placement="H">
+<img src="figures/fig_circuito_bus_and_or.svg" />
+<figcaption>Circuito combinatorio para un bus <span
+class="math inline">\(B\)</span> asignado en múltiples pasos: red de
+compuertas AND de habilitación y compuerta OR de salida.</figcaption>
+</figure>
+
+            <nav class="book-nav"><a href="cap05.html" class="prev-chapter">← Capítulo 5: Lógica de Datos</a><div></div><a href="cap07.html" class="next-chapter">Capítulo 7: Casos de Estudio Básicos →</a></nav>
+        </div>
+    </main>
+</body>
+</html>

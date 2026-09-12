@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 1: Fundamentos y Paradigma RTL | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html" class="active">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 1: Fundamentos y Paradigma RTL</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:fundamentos_rtl">Fundamentos y el Paradigma RTL</h1>
+<p>El diseño de circuitos y sistemas digitales ha experimentado una
+evolución constante desde las primeras implementaciones con compuertas
+discretas hasta los complejos sistemas en chip (<em>System-on-Chip</em>,
+SoC) modernos. Sin embargo, para dominar la arquitectura de computadores
+y el procesamiento digital, es indispensable comprender el nivel de
+abstracción intermedio más potente: el <strong>nivel de transferencia de
+registros</strong> (<em>Register-Transfer Level</em>, RTL).</p>
+<p>En este capítulo analizaremos las limitaciones del diseño clásico a
+nivel de compuertas lógicas, formalizaremos el concepto de sistema
+digital síncrono gobernado por un reloj maestro, y presentaremos la
+separación fundamental entre la <strong>Unidad de Control</strong> y la
+<strong>Ruta de Datos</strong>. Finalmente, examinaremos el origen y el
+valor pedagógico del lenguaje <strong>AHPL</strong> (<em>A Hardware
+Programming Language</em>).</p>
+<h2 id="límites-del-diseño-lógico-tradicional">Límites del Diseño Lógico
+Tradicional</h2>
+<p>En los primeros cursos de electrónica digital, el diseño se
+fundamenta en herramientas como el <strong>álgebra de Boole</strong>,
+las <strong>tablas de verdad</strong> y los <strong>mapas de
+Karnaugh</strong>. Estas técnicas permiten encontrar la función
+combinatoria mínima para un conjunto dado de entradas y salidas.
+Posteriormente, el estudio de las máquinas de estados finitos
+(<em>Finite State Machines</em>, FSM) clásicas (modelos de Mealy y
+Moore) introduce el uso de biestables (<em>flip-flops</em>) para
+almacenar el estado presente.</p>
+<p>No obstante, esta aproximación se vuelve inviable a medida que la
+complejidad del sistema crece:</p>
+<ol>
+<li><p><strong>Explosión del espacio de estados:</strong> Un sistema con
+un contador de 8 bits y dos registros de datos de 8 bits tiene un total
+de <span class="math inline">\(2^{24} \approx 16.7\)</span> millones de
+combinaciones posibles. Intentar resolver este circuito mediante una
+tabla de transición de estados global o mapas de Karnaugh es
+computacionalmente intratable para el ser humano.</p></li>
+<li><p><strong>Mezcla indeseada de control y datos:</strong> En una FSM
+clásica, las variables de datos (como el contenido de un acumulador) y
+las variables de secuenciación (en qué paso del algoritmo nos
+encontramos) se tratan con frecuencia como un único vector de estado,
+oscureciendo la estructura funcional del sistema.</p></li>
+<li><p><strong>Dificultad de escalabilidad:</strong> Modificar el ancho
+de palabra de un circuito diseñado a nivel de compuertas (por ejemplo,
+pasar de 4 bits a 8 bits) suele obligar a rediseñar por completo la red
+lógica.</p></li>
+</ol>
+<p>Para superar estas limitaciones surge el <strong>paradigma
+RTL</strong>, cuyo principio rector es estructurar el sistema digital
+mediante la manipulación, transformación y movimiento de información
+entre <strong>registros</strong> en instantes de tiempo discretos.</p>
+<h2 id="el-paradigma-síncrono-y-el-reloj-maestro">El Paradigma Síncrono
+y el Reloj Maestro</h2>
+<p>Un sistema digital diseñado bajo la filosofía de AHPL es
+estrictamente <strong>síncrono</strong>. Esto significa que todo cambio
+en el estado de memoria del circuito está sincronizado por una señal
+periódica global denominada <strong>reloj maestro</strong> (<em>system
+clock</em>).</p>
+<figure id="fig:reloj_sincrono" data-latex-placement="H">
+<div class="tcolorbox">
+<p><strong>Flanco Descendente (<span
+class="math inline">\(\downarrow\)</span>) como Evento de
+Muestreo</strong><br />
+En la convención adoptada para AHPL, los registros actualizan su
+contenido en el flanco de bajada del reloj.</p>
+</div>
+<figcaption>El reloj síncrono como director de orquesta en el diseño
+digital.</figcaption>
+</figure>
+<div class="callout callout-rule">
+<div class="callout-header">
+<p><span class="callout-icon">📐 </span><span
+class="callout-title-text">Regla Fundamental del Tiempo
+Síncrono</span></p>
+</div>
+<div class="callout-body">
+<p>El tiempo se divide en intervalos discretos llamados <strong>pasos de
+reloj</strong> o <strong>ciclos de máquina</strong>. Durante cada
+ciclo:</p>
+<ol>
+<li><p>Las salidas de los flip-flops se mantienen estables.</p></li>
+<li><p>Las redes combinatorias procesan los datos y las condiciones de
+salto.</p></li>
+<li><p>En el flanco activo del reloj (<span
+class="math inline">\(\downarrow\)</span>), los nuevos valores
+calculados se graban simultáneamente en los registros de
+destino.</p></li>
+</ol>
+</div>
+</div>
+<h2 id="la-arquitectura-dual-control-y-datos">La Arquitectura Dual:
+Control y Datos</h2>
+<p>Todo sistema digital modelado en AHPL se descompone de forma canónica
+y transparente en dos bloques interactuantes:</p>
+<figure id="fig:arquitectura_dual" data-latex-placement="H">
+<div class="center">
+<p><strong>SISTEMA DIGITAL (MÓDULO AHPL)</strong><br />
+</p>
+<div class="tcolorbox">
+<ul>
+<li><p>Administra la secuencia de pasos.</p></li>
+<li><p>Evalúa condiciones de bifurcación.</p></li>
+<li><p>Genera señales de habilitación de reloj (<em>Clock Enables</em>)
+y selección de buses.</p></li>
+</ul>
+</div>
+<p><span class="math inline">\(\longleftrightarrow\)</span></p>
+<div class="tcolorbox">
+<ul>
+<li><p>Registros de almacenamiento (<span class="math inline">\(A, B,
+C\)</span>).</p></li>
+<li><p>Buses de interconexión.</p></li>
+<li><p>Unidades operacionales (sumadores, comparadores, ALU).</p></li>
+</ul>
+</div>
+</div>
+<figcaption>Descomposición canónica: Unidad de Control y Ruta de
+Datos.</figcaption>
+</figure>
+<dl>
+<dt><strong>1. Lógica de Datos (<em>Datapath</em>):</strong></dt>
+<dd>
+<p>Es la infraestructura física encargada de almacenar, mover y
+transformar los datos útiles. Está compuesta por registros, buses,
+multiplexores, memorias y bloques aritmético-lógicos. Las operaciones en
+el Datapath se expresan en AHPL mediante <strong>transferencias</strong>
+(<code>&lt;=</code> o <code>&lt;-</code>) y <strong>conexiones</strong>
+(<code>=</code>).</p>
+</dd>
+<dt><strong>2. Lógica de Control (<em>FSM</em>):</strong></dt>
+<dd>
+<p>Es el cerebro secuencial del circuito. En cada ciclo de reloj se
+encuentra en un estado activo correspondiente a un <strong>paso
+numerado</strong> de la secuencia del programa. Decide qué
+transferencias se habilitan en el Datapath y determina cuál será el
+siguiente estado en función de las entradas externas y las banderas
+producidas por los datos.</p>
+</dd>
+</dl>
+<h2 id="historia-filosofía-y-valor-pedagógico-de-ahpl">Historia,
+Filosofía y Valor Pedagógico de AHPL</h2>
+<p><strong>AHPL</strong> (<em>A Hardware Programming Language</em>) fue
+concebido a principios de la década de 1970 por los profesores
+<strong>Fredrick J. Hill</strong> y <strong>Gerald R. Peterson</strong>
+en la Universidad de Arizona, introducido en su influyente obra
+<em>"Digital Systems: Hardware Organization and Design"</em>.</p>
+<p>Hill y Peterson observaron que, mientras que los lenguajes de
+programación tradicionales (como FORTRAN o C) ocultaban por completo la
+infraestructura física de ejecución, la notación vectorial del lenguaje
+<strong>APL</strong> (<em>A Programming Language</em> de Kenneth
+Iverson) poseía una concisión matemática extraordinaria para expresar
+operaciones paralelas y manipulación de arreglos de bits. Adaptaron esta
+notación al dominio del hardware síncrono, dando origen a AHPL.</p>
+<h3 id="por-qué-estudiar-ahpl-en-la-era-de-verilog-y-vhdl">¿Por qué
+estudiar AHPL en la era de Verilog y VHDL?</h3>
+<p>Hoy en día, la industria electrónica domina el diseño mediante
+lenguajes como SystemVerilog, VHDL o Chisel. Sin embargo, en el ámbito
+educativo universitario, AHPL ofrece ventajas didácticas únicas:</p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">El Valor Formativo de AHPL</span></p>
+</div>
+<div class="callout-body">
+<ul>
+<li><p><strong>Cero sobrecarga de simulación:</strong> En Verilog o
+VHDL, un estudiante novato suele confundir la semántica de eventos,
+variables de simulación (<code>initial</code>, variables auxiliares,
+retardos tipo <code>#5</code>) con hardware real. En AHPL, cada línea de
+código representa directamente una compuerta, un multiplexor o un
+flip-flop.</p></li>
+<li><p><strong>Síntesis visual y manual directa:</strong> Existe una
+correspondencia biunívoca (<span class="math inline">\(1:1\)</span>)
+entre la sintaxis de AHPL y el esquema circuital. El estudiante aprende
+a "ver el hardware" mientras escribe el algoritmo.</p></li>
+<li><p><strong>Puente ideal hacia el diseño de procesadores:</strong>
+AHPL permite describir el ciclo de instrucción de un microprocesador
+(<em>Fetch-Decode-Execute</em>) en apenas 15 o 20 líneas de código
+riguroso, facilitando la asimilación conceptual de la arquitectura de
+computadores.</p></li>
+</ul>
+</div>
+</div>
+<p>—</p>
+
+            <nav class="book-nav"><a href="index.html" class="prev-chapter">← Inicio y Presentación</a><div></div><a href="cap02.html" class="next-chapter">Capítulo 2: Elementos y Declaraciones →</a></nav>
+        </div>
+    </main>
+</body>
+</html>

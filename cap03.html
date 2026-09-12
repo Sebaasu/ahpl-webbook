@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 3: Operadores y Expresiones | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html" class="active">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 3: Operadores y Expresiones</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:operadores_expresiones">Operadores y Expresiones en
+AHPL</h1>
+<p>En este capítulo analizaremos formalmente los operadores primitivos y
+compuestos que constituyen el núcleo expresivo de AHPL. Gracias a su
+herencia directa de APL, AHPL ofrece una notación matemática sumamente
+potente y concisa para describir transformaciones lógicas paralelas,
+concatenaciones vectoriales y matriciales, codificación binaria,
+reducciones y compresión de datos a nivel de hardware.</p>
+<h2 id="operadores-lógicos-primitivos">Operadores Lógicos
+Primitivos</h2>
+<p>AHPL define cuatro operadores lógicos fundamentales que se aplican
+tanto a señales escalares (bits) como a vectores y matrices de
+dimensiones idénticas. En arreglos de bits, la operación se realiza
+<strong>bit a bit</strong> de forma puramente combinatoria y
+simultánea.</p>
+<table id="tab:operadores_primitivos">
+<caption>Operadores lógicos primitivos en AHPL.</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Operación</strong></th>
+<th style="text-align: center;"><strong>Símbolo Formal</strong></th>
+<th style="text-align: center;"><strong>Ejemplo Vectorial</strong></th>
+<th style="text-align: center;"><strong>Definición Lógica</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Negación (NOT)</strong></td>
+<td style="text-align: center;"><span
+class="math inline">\(\overline{X}\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(\overline{A}\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(\overline{A_i}\)</span> para todo bit <span
+class="math inline">\(i\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Conjunción (AND)</strong></td>
+<td style="text-align: center;"><span
+class="math inline">\(\land\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(A \land
+B\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(A_i \land
+B_i\)</span> para todo bit <span class="math inline">\(i\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Disyunción (OR)</strong></td>
+<td style="text-align: center;"><span
+class="math inline">\(\lor\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(A \lor
+B\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(A_i \lor
+B_i\)</span> para todo bit <span class="math inline">\(i\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>O Exclusiva (XOR)</strong></td>
+<td style="text-align: center;"><span
+class="math inline">\(\oplus\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(A \oplus
+B\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(A_i \oplus
+B_i\)</span> para todo bit <span class="math inline">\(i\)</span></td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Ejemplo Ilustrativo</span></p>
+</div>
+<div class="callout-body">
+<p>Sean los vectores de 4 bits <span class="math inline">\(A = (1, 0, 1,
+0)\)</span> y <span class="math inline">\(B = (1, 1, 0, 0)\)</span>:</p>
+<ul>
+<li><p><span class="math inline">\(\overline{A} = (0, 1, 0,
+1)\)</span></p></li>
+<li><p><span class="math inline">\(A \land B = (1, 0, 0,
+0)\)</span></p></li>
+<li><p><span class="math inline">\(A \lor B = (1, 1, 1,
+0)\)</span></p></li>
+<li><p><span class="math inline">\(A \oplus B = (0, 1, 1,
+0)\)</span></p></li>
+</ul>
+</div>
+</div>
+<h2 id="operadores-de-concatenación-columnas-y-filas">Operadores de
+Concatenación: Columnas y Filas</h2>
+<p>AHPL distingue claramente entre la concatenación en dimensión
+horizontal (columnas) y en dimensión vertical (filas):</p>
+<h3 id="concatenación-de-columnas-operador-coma">Concatenación de
+Columnas: Operador Coma (<span class="math inline">\(,\)</span>)</h3>
+<p>El operador coma (<span class="math inline">\(,\)</span>) concatena
+elementos escalares o subvectores para formar un vector de mayor
+longitud (anchura en bits). <span class="math display">\[C = A ,
+B\]</span> Si <span class="math inline">\(A\)</span> posee <span
+class="math inline">\(n\)</span> bits (<span class="math inline">\(A_0,
+\dots, A_{n-1}\)</span>) y <span class="math inline">\(B\)</span> posee
+<span class="math inline">\(m\)</span> bits (<span
+class="math inline">\(B_0, \dots, B_{m-1}\)</span>), el vector
+resultante <span class="math inline">\(C\)</span> tiene dimensión <span
+class="math inline">\(n+m\)</span>, donde los bits de <span
+class="math inline">\(A\)</span> ocupan las posiciones más
+significativas: <span class="math display">\[C = (A_0, \dots, A_{n-1},
+B_0, \dots, B_{m-1})\]</span></p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">Desplazamientos mediante
+Concatenación</span></p>
+</div>
+<div class="callout-body">
+<p>La concatenación de columnas es la base para modelar corrimientos
+lógicos:</p>
+<ul>
+<li><p><strong>Desplazamiento a la derecha con inserción de
+cero:</strong> <span class="math display">\[A \leftarrow 0,
+A_{0:n-2}\]</span></p></li>
+<li><p><strong>Desplazamiento a la izquierda con inserción de
+cero:</strong> <span class="math display">\[A \leftarrow A_{1:n-1},
+0\]</span></p></li>
+</ul>
+</div>
+</div>
+<h3 id="concatenación-de-filas-operador-exclamación">Concatenación de
+Filas: Operador Exclamación (<span
+class="math inline">\(!\)</span>)</h3>
+<p>El operador exclamación (<span class="math inline">\(!\)</span>) toma
+dos o más vectores de igual longitud <span
+class="math inline">\(m\)</span> y los apila verticalmente para generar
+una <strong>matriz bidimensional</strong>. <span
+class="math display">\[M = A ! B\]</span> Si <span
+class="math inline">\(A\)</span> y <span
+class="math inline">\(B\)</span> son vectores de <span
+class="math inline">\(m\)</span> bits, la expresión <span
+class="math inline">\(A ! B\)</span> genera una matriz <span
+class="math inline">\(M[2, m]\)</span> de <span
+class="math inline">\(2\)</span> filas y <span
+class="math inline">\(m\)</span> columnas, donde la primera fila <span
+class="math inline">\(M_0\)</span> corresponde a <span
+class="math inline">\(A\)</span> y la segunda fila <span
+class="math inline">\(M_1\)</span> corresponde a <span
+class="math inline">\(B\)</span>.</p>
+<h2 id="codificación-binaria-el-operador-n-top-p">Codificación Binaria:
+El Operador <span class="math inline">\(n \top p\)</span></h2>
+<p>Para expresar constantes binarias a partir de su valor decimal de
+manera compacta, AHPL emplea el operador de codificación binaria <span
+class="math inline">\(n \top p\)</span> (leído <em>"<span
+class="math inline">\(p\)</span> codificado en <span
+class="math inline">\(n\)</span> bits"</em>, utilizando el símbolo
+matemático <em>up tack</em> <span
+class="math inline">\(\top\)</span>):</p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">Definición de Codificación Binaria</span></p>
+</div>
+<div class="callout-body">
+<p><span class="math display">\[n \top p\]</span> Representa el vector
+binario de longitud <span class="math inline">\(n\)</span> que codifica
+el valor entero no negativo <span class="math inline">\(p\)</span> en
+base 2, con convención Big-Endian.</p>
+</div>
+</div>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Ejemplo Ilustrativo</span></p>
+</div>
+<div class="callout-body">
+<ul>
+<li><p><span class="math inline">\(4 \top 5 = (0, 1, 0,
+1)\)</span></p></li>
+<li><p><span class="math inline">\(4 \top 0 = (0, 0, 0,
+0)\)</span></p></li>
+<li><p><span class="math inline">\(8 \top 255 = (1, 1, 1, 1, 1, 1, 1,
+1)\)</span></p></li>
+<li><p><span class="math inline">\(3 \top 7 = (1, 1,
+1)\)</span></p></li>
+</ul>
+</div>
+</div>
+<p>Este operador es de gran utilidad para inicializar registros con
+constantes o cargar patrones fijos de control sin tener que escribir
+listas extensas de ceros y unos.</p>
+<h2 id="el-operador-de-reducción">El Operador de Reducción (<span
+class="math inline">\(/\)</span>)</h2>
+<p>El operador de reducción (denotado por la barra inclinada <span
+class="math inline">\(/\)</span>) colapsa una dimensión de un arreglo de
+bits aplicando sucesivamente un operador lógico primitivo situado a su
+izquierda.</p>
+<h3 id="reducción-de-vectores-a-escalares">Reducción de Vectores a
+Escalares</h3>
+<p>Dado un vector <span class="math inline">\(X = (X_0, X_1, \dots,
+X_{n-1})\)</span> y un operador lógico primitivo <span
+class="math inline">\(\odot \in \{\land, \lor, \oplus\}\)</span>, la
+reducción se define como: <span class="math display">\[\odot / X = X_0
+\odot X_1 \odot \dots \odot X_{n-1}\]</span></p>
+<table id="tab:reduccion_vectores">
+<caption>Operadores de reducción sobre vectores.</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Reducción</strong></th>
+<th style="text-align: left;"><strong>Expresión Formal</strong></th>
+<th style="text-align: left;"><strong>Significado Físico en
+Hardware</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Reducción AND</strong></td>
+<td style="text-align: left;"><span class="math inline">\(\land / X =
+X_0 \land X_1 \land \dots \land X_{n-1}\)</span></td>
+<td style="text-align: left;">Árbol de compuertas AND. Entrega <span
+class="math inline">\(1\)</span> si <strong>todos</strong> los bits de
+<span class="math inline">\(X\)</span> son <span
+class="math inline">\(1\)</span>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Reducción OR</strong></td>
+<td style="text-align: left;"><span class="math inline">\(\lor / X = X_0
+\lor X_1 \lor \dots \lor X_{n-1}\)</span></td>
+<td style="text-align: left;">Árbol de compuertas OR. Entrega <span
+class="math inline">\(1\)</span> si <strong>al menos un</strong> bit de
+<span class="math inline">\(X\)</span> es <span
+class="math inline">\(1\)</span> (detector de no-cero).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Reducción XOR</strong></td>
+<td style="text-align: left;"><span class="math inline">\(\oplus / X =
+X_0 \oplus X_1 \oplus \dots \oplus X_{n-1}\)</span></td>
+<td style="text-align: left;">Árbol de compuertas XOR. Generador de
+<strong>paridad impar</strong>.</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Ejemplo Ilustrativo</span></p>
+</div>
+<div class="callout-body">
+<p><strong>Aplicaciones comunes de reducción en condiciones de
+control:</strong></p>
+<ul>
+<li><p><strong>Comprobar si el registro <span
+class="math inline">\(A\)</span> es cero (<span class="math inline">\(A
+= 0\)</span>):</strong> <span class="math inline">\(\overline{\lor /
+A}\)</span></p></li>
+<li><p><strong>Comprobar si el contador ha llegado a su valor máximo
+(<span class="math inline">\(11\dots 1\)</span>):</strong> <span
+class="math inline">\(\land / \text{count}\)</span></p></li>
+<li><p><strong>Comprobar igualdad entre dos registros (<span
+class="math inline">\(A = B\)</span>):</strong> <span
+class="math inline">\(\overline{\lor / (A \oplus B)}\)</span></p></li>
+</ul>
+</div>
+</div>
+<h3 id="reducción-sobre-matrices-reducción-de-filas">Reducción sobre
+Matrices (Reducción de Filas)</h3>
+<p>Cuando el operador de reducción se aplica a una matriz bidimensional
+<span class="math inline">\(M[r, c]\)</span>, la operación se realiza a
+lo largo de cada fila de la matriz, dando como resultado un vector
+columna de <span class="math inline">\(r\)</span> bits. Por ejemplo,
+<span class="math inline">\(\lor / M\)</span> produce un vector de <span
+class="math inline">\(r\)</span> bits donde cada posición <span
+class="math inline">\(i\)</span> indica si la fila <span
+class="math inline">\(i\)</span> de la matriz contiene al menos un bit
+en nivel alto.</p>
+<h2 id="el-operador-de-compresión-u-x">El Operador de Compresión (<span
+class="math inline">\(U / X\)</span>)</h2>
+<p>El operador de <strong>compresión</strong> o enmascaramiento permite
+seleccionar un subconjunto de bits de un vector a partir de un vector
+booleano de control de igual longitud.</p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">Definición de Compresión</span></p>
+</div>
+<div class="callout-body">
+<p>Sea <span class="math inline">\(X\)</span> un vector de datos de
+<span class="math inline">\(n\)</span> bits y sea <span
+class="math inline">\(U\)</span> un vector booleano de selección de
+<span class="math inline">\(n\)</span> bits. La expresión: <span
+class="math display">\[U / X\]</span> genera un nuevo vector compuesto
+únicamente por aquellos elementos <span
+class="math inline">\(X_i\)</span> para los cuales el correspondiente
+bit <span class="math inline">\(U_i\)</span> es igual a <span
+class="math inline">\(1\)</span>. La longitud del vector resultante es
+igual a la suma de los unos presentes en <span
+class="math inline">\(U\)</span> (es decir, <span
+class="math inline">\(+ / U\)</span>).</p>
+</div>
+</div>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Ejemplo Ilustrativo</span></p>
+</div>
+<div class="callout-body">
+<p>Sea el vector de datos <span class="math inline">\(X = (1, 0, 1, 1,
+0, 1)\)</span> de 6 bits y el vector de selección <span
+class="math inline">\(U = (1, 0, 0, 1, 0, 1)\)</span>: <span
+class="math display">\[U / X = (X_0, X_3, X_5) = (1, 1, 1)\]</span></p>
+</div>
+</div>
+<p>En hardware, la compresión modela la selección de líneas de datos
+mediante una máscara combinatoria fija o parametrizada.</p>
+<h2 id="unidades-lógicas-combinacionales-clu">Unidades Lógicas
+Combinacionales (CLU)</h2>
+<p>En AHPL, los bloques funcionales combinatorios complejos se
+formalizan como <strong>Unidades Lógicas Combinacionales</strong>
+(<em>Combinational Logic Units</em>, CLU).</p>
+<p>Bajo la metodología estricta de Hill &amp; Peterson, cualquier CLU
+personalizada debe definirse formalmente antes de ser invocada en el
+módulo principal (especificando sus puertos de entrada, salida y su red
+lógica interna). Para una guía detallada sobre la creación y sintaxis de
+definición de nuevas CLUs personalizadas, se remite al lector al texto
+guía de Hill &amp; Peterson.</p>
+<p>Una vez definida una CLU, puede utilizarse a lo largo del programa
+AHPL entregando argumentos compatibles en número y dimensión con su
+definición.</p>
+<h3 id="clus-estándar-de-uso-frecuente">CLUs Estándar de Uso
+Frecuente</h3>
+<p>Existen un conjunto de CLUs elementales de amplio uso en el diseño de
+sistemas digitales. Debido a su carácter estándar y universal,
+<strong>en este texto se utilizarán directamente a lo largo de todos los
+ejemplos y ejercicios sin necesidad de ser definidas
+previamente</strong>:</p>
+<dl>
+<dt><span class="math inline">\(\text{INC}(A)\)</span>
+(Incrementador):</dt>
+<dd>
+<p>Recibe un vector <span class="math inline">\(A\)</span> y entrega el
+resultado combinatorio de <span class="math inline">\(A +
+1\)</span>.</p>
+</dd>
+<dt><span class="math inline">\(\text{DEC}(A)\)</span>
+(Decrementador):</dt>
+<dd>
+<p>Recibe un vector <span class="math inline">\(A\)</span> y entrega el
+resultado combinatorio de <span class="math inline">\(A -
+1\)</span>.</p>
+</dd>
+<dt><span class="math inline">\(\text{ADD}(A; B)\)</span> (Sumador
+Binario):</dt>
+<dd>
+<p>Recibe dos vectores <span class="math inline">\(A\)</span> y <span
+class="math inline">\(B\)</span> de igual dimensión y retorna su suma
+binaria combinatoria.</p>
+</dd>
+<dt><span class="math inline">\(\text{COMP}(A; B)\)</span> (Comparador
+de Magnitud):</dt>
+<dd>
+<p>Recibe dos vectores <span class="math inline">\(A\)</span> y <span
+class="math inline">\(B\)</span> de igual dimensión y genera un vector
+de control de 3 bits: <span class="math display">\[\text{COMP}(A; B) =
+(\text{comp}_0, \text{comp}_1, \text{comp}_2)\]</span> donde:</p>
+<ul>
+<li><p><span class="math inline">\(\text{comp}_0 = 1 \iff A &gt;
+B\)</span></p></li>
+<li><p><span class="math inline">\(\text{comp}_1 = 1 \iff A &lt;
+B\)</span></p></li>
+<li><p><span class="math inline">\(\text{comp}_2 = 1 \iff A =
+B\)</span></p></li>
+</ul>
+</dd>
+<dt><span class="math inline">\(\text{DCD}(X)\)</span> (Decodificador
+Binario):</dt>
+<dd>
+<p>Recibe un vector binario <span class="math inline">\(X\)</span> de
+<span class="math inline">\(n\)</span> bits y entrega un vector
+<em>One-Hot</em> de <span class="math inline">\(2^n\)</span> bits donde
+únicamente el bit en la posición correspondiente al valor entero de
+<span class="math inline">\(X\)</span> está activo (<span
+class="math inline">\(1\)</span>).</p>
+</dd>
+<dt><span class="math inline">\(\text{BUSFN}(M; \text{sel})\)</span>
+(Función de Selección de Fila en Matriz):</dt>
+<dd>
+<p>Recibe una memoria/matriz bidimensional <span
+class="math inline">\(M\)</span> y un vector selector <em>One-Hot</em>
+<span class="math inline">\(\text{sel}\)</span>, entregando como salida
+la fila específica de <span class="math inline">\(M\)</span>
+seleccionada por <span class="math inline">\(\text{sel}\)</span>. Es la
+función canónica para la lectura de memorias.</p>
+</dd>
+</dl>
+
+            <nav class="book-nav"><a href="cap02.html" class="prev-chapter">← Capítulo 2: Elementos y Declaraciones</a><div></div><a href="cap04.html" class="next-chapter">Capítulo 4: Lógica de Control →</a></nav>
+        </div>
+    </main>
+</body>
+</html>

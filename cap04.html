@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 4: Lógica de Control | AHPL Libro Web</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">Sistemas Digitales con AHPL</div>
+        <div class="sidebar-subtitle">Versión Web Interactiva<br><span class="badge-dev">🚧 En Desarrollo</span></div>
+        <ul class="sidebar-nav">
+<li><a href="index.html">Inicio y Presentación</a></li>
+<li class="nav-part-title">Capítulos Disponibles</li>
+<li><a href="cap01.html">Capítulo 1: Fundamentos y Paradigma RTL</a></li>
+<li><a href="cap02.html">Capítulo 2: Elementos y Declaraciones</a></li>
+<li><a href="cap03.html">Capítulo 3: Operadores y Expresiones</a></li>
+<li><a href="cap04.html" class="active">Capítulo 4: Lógica de Control</a></li>
+<li><a href="cap05.html">Capítulo 5: Lógica de Datos</a></li>
+<li><a href="cap06.html">Capítulo 6: Síntesis a Hardware</a></li>
+<li><a href="cap07.html">Capítulo 7: Casos de Estudio Básicos</a></li>
+</ul>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="dev-banner">
+            <span class="badge">Borrador</span>
+            <span>Texto en desarrollo activo — Publicados Capítulos 1 al 7.</span>
+        </div>
+        <header class="top-bar">
+            <div><strong>Capítulo 4: Lógica de Control</strong></div>
+            <div><a href="https://github.com" target="_blank" style="text-decoration:none; color:var(--text-muted); font-size:0.9rem;">Repositorio</a></div>
+        </header>
+        <div class="content-container">
+            <h1 id="cap:logica_control">Lógica de Control y Flujo de Secuencia</h1>
+<p>La Lógica de Control en AHPL constituye el cerebro secuencial que
+orquesta la ejecución del sistema digital. En este capítulo analizaremos
+el modelo de secuenciación, el principio de exclusión mutua que
+garantiza el comportamiento como Máquina de Estados Finitos (FSM), la
+regla de avance secuencial por defecto y la sintaxis formal para las
+bifurcaciones incondicionales y condicionales.</p>
+<h2 id="el-modelo-de-control-fsm-frente-al-paralelismo">El Modelo de
+Control: FSM frente al Paralelismo</h2>
+<p>En la teoría general de AHPL, el lenguaje tiene la capacidad
+expresiva de habilitar múltiples pasos de control de forma simultánea,
+lo cual permite describir procesamiento paralelo concurrente semejante a
+una <strong>Red de Petri</strong> (donde múltiples estados o "fichas" se
+encuentran activos al mismo tiempo).</p>
+<p>Sin embargo, en el diseño digital clásico y en la arquitectura de
+procesadores estándar, los sistemas operan bajo el paradigma de un único
+estado activo por ciclo de reloj:</p>
+<div class="callout callout-concept">
+<div class="callout-header">
+<p><span class="callout-icon">💡 </span><span
+class="callout-title-text">Convención Pedagógica: Control Estrictamente
+FSM</span></p>
+</div>
+<div class="callout-body">
+<p>En este texto de carácter introductorio, adoptamos la convención
+formal de <strong>limitarnos exclusivamente a la Lógica de Control
+basada en Máquinas de Estados Finitos (FSM)</strong>.</p>
+<p>Bajo este acuerdo, se exige que las condiciones de bifurcación sean
+<strong>mutuamente excluyentes</strong>, garantizando que en ningún
+ciclo de reloj exista una doble habilitación de pasos y que exactamente
+un único biestable de control permanezca activo a la vez
+(<em>One-Hot</em>).</p>
+</div>
+</div>
+<h2 id="regla-fundamental-avance-secuencial-por-defecto">Regla
+Fundamental: Avance Secuencial por Defecto</h2>
+<div class="callout callout-warn">
+<div class="callout-header">
+<p><span class="callout-icon">⚠️ </span><span
+class="callout-title-text">El Estado Siguiente Implícito</span></p>
+</div>
+<div class="callout-body">
+<p>En AHPL, si un paso no incluye una sentencia de bifurcación
+explícita, o si ninguna de las condiciones listadas en una bifurcación
+condicional se cumple (<span class="math inline">\(c_i = 0\)</span>), el
+sistema <strong>SIEMPRE avanza al paso numéricamente consecutivo (<span
+class="math inline">\(k+1\)</span>)</strong> en el siguiente flanco
+activo del reloj maestro.</p>
+</div>
+</div>
+<p>Para que un circuito permanezca esperando en el mismo paso (bucle de
+espera o <em>polling</em>), es indispensable forzar explícitamente el
+salto hacia sí mismo.</p>
+<h2 id="bifurcaciones-de-control">Bifurcaciones de Control</h2>
+<p>Las bifurcaciones se indican mediante el símbolo de flecha hacia la
+derecha (<span class="math inline">\(\rightarrow\)</span>).</p>
+<h3 id="bifurcación-incondicional">Bifurcación Incondicional</h3>
+<p>Ordena una transición directa y obligatoria hacia el paso de destino
+especificado entre paréntesis:</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><span class="math inline">\(4 \quad \text{ACC} \leftarrow
+\text{DATA_IN}\)</span><br />
+<span class="math inline">\(\quad \rightarrow (1).\)</span></p>
+</div>
+</div>
+<p>En este ejemplo, durante el paso 4 se transfiere la entrada al
+acumulador y, al llegar el flanco descendente del reloj, el estado
+activo pasa incondicionalmente al paso 1.</p>
+<h3 id="bifurcación-condicional">Bifurcación Condicional</h3>
+<p>Permite ramificar la secuencia hacia diferentes pasos en función de
+señales escalares de control (de 1 bit):</p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><span class="math inline">\(5 \quad \text{ACC} \leftarrow
+\text{INC}(\text{ACC})\)</span><br />
+<span class="math inline">\(\quad \rightarrow (\text{start},
+\overline{\text{start}}) / (2, 1).\)</span></p>
+</div>
+</div>
+<div class="callout callout-rule">
+<div class="callout-header">
+<p><span class="callout-icon">📐 </span><span
+class="callout-title-text">Reglas para Bifurcaciones
+Condicionales</span></p>
+</div>
+<div class="callout-body">
+<ol>
+<li><p><strong>Estructura canónica:</strong> Se escribe siempre en el
+formato <span class="math inline">\(\rightarrow (c_1, c_2, \dots, c_m) /
+(p_1, p_2, \dots, p_m).\)</span></p></li>
+<li><p><strong>Condiciones escalares:</strong> Cada condición <span
+class="math inline">\(c_i\)</span> debe evaluar estrictamente a un único
+bit (escalar booleano).</p></li>
+<li><p><strong>Exclusión mutua:</strong> En cualquier ciclo de reloj, a
+lo sumo una condición <span class="math inline">\(c_i\)</span> puede ser
+verdadera (<span class="math inline">\(1\)</span>). Si <span
+class="math inline">\(c_i = 1\)</span>, el siguiente estado será <span
+class="math inline">\(p_i\)</span>.</p></li>
+<li><p><strong>Avance automático ante condición nula:</strong> Si todas
+las condiciones son falsas (<span class="math inline">\(c_1 = c_2 =
+\dots = c_m = 0\)</span>), el control pasa automáticamente al paso
+siguiente (<span class="math inline">\(k+1\)</span>).</p></li>
+</ol>
+</div>
+</div>
+<div class="callout callout-example">
+<div class="callout-header">
+<p><span class="callout-icon">🔍 </span><span
+class="callout-title-text">Ejemplo Ilustrativo</span></p>
+</div>
+<div class="callout-body">
+<p><strong>Patrón de espera (<em>Polling</em>) en una señal externa
+<span class="math inline">\(\text{start}\)</span>:</strong></p>
+<div class="callout callout-ahpl">
+<div class="callout-header">
+<p><span class="callout-icon">⚙️ </span><span
+class="callout-title-text">Código AHPL</span></p>
+</div>
+<div class="callout-body">
+<p><span class="math inline">\(1 \quad \rightarrow
+(\overline{\text{start}}) / (1).\)</span><br />
+<span class="math inline">\(2 \quad \text{REG} \leftarrow
+\text{DATA_IN}.\)</span></p>
+</div>
+</div>
+<ul>
+<li><p>Si <span class="math inline">\(\text{start} = 0\)</span>, la
+condición <span class="math inline">\(\overline{\text{start}} =
+1\)</span>, por lo que el sistema salta al paso 1 (se mantiene
+esperando).</p></li>
+<li><p>En el ciclo donde <span class="math inline">\(\text{start} =
+1\)</span>, la condición <span
+class="math inline">\(\overline{\text{start}} = 0\)</span>. Al no
+cumplirse la condición de salto, el sistema avanza por defecto al paso
+2.</p></li>
+</ul>
+</div>
+</div>
+
+            <nav class="book-nav"><a href="cap03.html" class="prev-chapter">← Capítulo 3: Operadores y Expresiones</a><div></div><a href="cap05.html" class="next-chapter">Capítulo 5: Lógica de Datos →</a></nav>
+        </div>
+    </main>
+</body>
+</html>
