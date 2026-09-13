@@ -360,3 +360,10 @@ th {
   border-radius: 9999px;
   margin-top: 0.4rem;
 }
+
+/* Asegurar que el contenedor monoespaciado respete las proporciones de fórmulas matemáticas */
+.callout-ahpl .callout-body mjx-container,
+.callout-ahpl .callout-body svg {
+  font-family: initial !important;
+  vertical-align: -0.15em;
+}
